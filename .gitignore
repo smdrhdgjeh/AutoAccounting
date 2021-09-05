@@ -2,4 +2,3 @@
 accounting_data/
 dist/
 src/__pycache__
-!src

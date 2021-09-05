@@ -1,17 +1,11 @@
-import os
-import sys
-import xlrd
 import xlsxwriter
 
 from datetime import datetime, timedelta, date
 
-from my_basic_function import My_basic_Func
-
-
-class My_excel():
+class My_Write():
     def __init__(self):
-        self.func = My_basic_Func() # 자주 사용하는 func 클래스 인스턴스화
-
+        pass
+    
     def make_exel_file(self, save_location=None, name=None):
         self.workbook = xlsxwriter.Workbook(save_location + name + '.xlsx')
 
@@ -49,37 +43,6 @@ class My_excel():
 
         self.cell_bg_format = self.workbook.add_format({'bg_color': '#FFFF66'})
 
-    def save_excel_day_kiwoom_db(self, stock_basic_data=None, stock_day_bong=None):
-        self.worksheet1 = self.workbook.add_worksheet('일별주가')  # 일봉차트조회
-
-        # 데이터 제목 입력
-        self.worksheet1.write_string(0, 0, '일자', self.bold_format)
-        self.worksheet1.write_string(0, 1, '시가', self.bold_format)
-        self.worksheet1.write_string(0, 2, '고가', self.bold_format)
-        self.worksheet1.write_string(0, 3, '저가', self.bold_format)
-        self.worksheet1.write_string(0, 4, '현재가', self.bold_format)
-        self.worksheet1.write_string(0, 6, '거래량', self.bold_format)
-        self.worksheet1.write_string(0, 7, '거래대금(백만)', self.bold_format)
-
-        # 주가 추가 정보
-        self.worksheet1.write_string(0, 9, '상장주식', self.bold_format)
-        self.worksheet1.write_string(0, 10, '유통주식', self.bold_format)
-        self.worksheet1.write_string(0, 11, '유통비율', self.bold_format)
-
-        self.worksheet1.write_number(1, 9, stock_basic_data[2], self.money_format)
-        self.worksheet1.write_number(1, 10, stock_basic_data[3], self.money_format)
-        self.worksheet1.write_number(1, 11, stock_basic_data[4], self.percent_format)
-
-        for i in range(len(stock_day_bong)):
-            # Date 입력
-            self.worksheet1.write(i + 1, 0, stock_day_bong[i][3], self.date_format)
-            self.worksheet1.write_number(i + 1, 1, stock_day_bong[i][4], self.money_format)
-            self.worksheet1.write_number(i + 1, 2, stock_day_bong[i][5], self.money_format)
-            self.worksheet1.write_number(i + 1, 3, stock_day_bong[i][6], self.money_format)
-            self.worksheet1.write_number(i + 1, 4, stock_day_bong[i][0], self.money_format)
-            self.worksheet1.write_number(i + 1, 6, stock_day_bong[i][1], self.money_format)
-            self.worksheet1.write_number(i + 1, 7, stock_day_bong[i][2], self.money_format)
-
     def draw_execl_chart_supply(self):
         self.worksheet8 = self.workbook.add_worksheet('매집수량변동그림')
 
@@ -92,44 +55,6 @@ class My_excel():
         chart.set_style(10)
 
         self.worksheet8.insert_chart('D2', chart, {'x_offset': 25, 'y_offset': 10})
-
-    def read_excel_transaction_history(self, save_location=None, name=None):
-        self.exist_tr_history = {}
-
-        if os.path.exists(save_location + name + '.xlsx'):  # 해당 경로에 파일이 있는지 체크한다.
-            self.workbook_read = xlrd.open_workbook(save_location + name + '.xlsx')
-            self.worksheet_read = self.workbook_read.sheet_by_index(0)
-
-            nrows = self.worksheet_read.nrows
-
-            for i in range(nrows - 1):
-                temp_key = self.worksheet_read.row_values(i + 1)[3]
-
-                if self.worksheet_read.row_values(i + 1)[3] in self.exist_tr_history: # 중복 되는 종목 거래 데이터 유지
-                    temp_key = temp_key + 'i'
-
-                # 엑셀 형식 날짜 표시 변환
-                selldate = self.func.excel_date_type_convert_str(excel_date=self.worksheet_read.row_values(i + 1)[0])
-                buydate = self.func.excel_date_type_convert_str(excel_date=self.worksheet_read.row_values(i + 1)[1])
-
-                self.exist_tr_history[temp_key] = {}
-                self.exist_tr_history[temp_key].update({"매도날짜": selldate})
-                self.exist_tr_history[temp_key].update({"매수날짜": buydate})
-                self.exist_tr_history[temp_key].update({"보유기간": self.worksheet_read.row_values(i + 1)[2]})
-                self.exist_tr_history[temp_key].update({"종목번호": self.worksheet_read.row_values(i + 1)[3]})
-                self.exist_tr_history[temp_key].update({"종목명": self.worksheet_read.row_values(i + 1)[4]})
-                self.exist_tr_history[temp_key].update({"매수수량": self.worksheet_read.row_values(i + 1)[5]})
-                self.exist_tr_history[temp_key].update({"매도수량": self.worksheet_read.row_values(i + 1)[6]})
-                self.exist_tr_history[temp_key].update({"잔여수량": self.worksheet_read.row_values(i + 1)[7]})
-                self.exist_tr_history[temp_key].update({"매수단가": self.worksheet_read.row_values(i + 1)[8]})
-                self.exist_tr_history[temp_key].update({"매도단가": self.worksheet_read.row_values(i + 1)[9]})
-                self.exist_tr_history[temp_key].update({"현재가": self.worksheet_read.row_values(i + 1)[10]})
-                self.exist_tr_history[temp_key].update({"매수금액": self.worksheet_read.row_values(i + 1)[11]})
-                self.exist_tr_history[temp_key].update({"매도금액": self.worksheet_read.row_values(i + 1)[12]})
-                self.exist_tr_history[temp_key].update({"세금": self.worksheet_read.row_values(i + 1)[13]})
-                self.exist_tr_history[temp_key].update({"예상 수익금액": self.worksheet_read.row_values(i + 1)[14]})
-                self.exist_tr_history[temp_key].update({"실현 수익금액": self.worksheet_read.row_values(i + 1)[15]})
-                self.exist_tr_history[temp_key].update({"수익률": self.worksheet_read.row_values(i + 1)[16]})
 
     def save_excel_transaction_history(self, tr_history=None, exist_tr_history=None, account_info=None):
         total_profit = 0
