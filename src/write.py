@@ -1,11 +1,11 @@
+from os import read
 import xlsxwriter
-
 from datetime import datetime, timedelta, date
 
 class My_Write():
     def __init__(self):
         pass
-    
+
     def make_exel_file(self, save_location=None, name=None):
         self.workbook = xlsxwriter.Workbook(save_location + name + '.xlsx')
 
@@ -42,6 +42,58 @@ class My_Write():
                                                      'font_size': 9})
 
         self.cell_bg_format = self.workbook.add_format({'bg_color': '#FFFF66'})
+
+    def write_excel_total_deposit_inform(self, read_data=None):
+        self.worksheet1 = self.workbook.add_worksheet("자산내역")
+        self.worksheet1.set_column('A:Z', 10)
+
+        # calculate deposit
+        self.total_flow_moeny = read_data.KB_bank\
+                            + read_data.Hana_bank\
+                            + read_data.Sinhan_bank\
+                            + read_data.Deposit\
+                            + read_data.Installment_savings
+        
+        self.total_invest_money = read_data.House_invest_deposit\
+                                + read_data.stock_predict_total_deposit\
+                                + read_data.pension
+
+        self.total_deposit = self.total_flow_moeny + self.total_invest_money
+
+        # set data title
+        self.worksheet1.write_string(0, 0, '총 자산: ', self.bold_format)
+        self.worksheet1.write_number(0, 1, self.total_deposit, self.money_format)
+        self.worksheet1.write_string(0, 2, '유동 자산: ', self.bold_format)
+        self.worksheet1.write_number(0, 3, self.total_flow_moeny, self.money_format)
+        self.worksheet1.write_string(0, 4, '투자 자산: ', self.bold_format)
+        self.worksheet1.write_number(0, 5, self.total_invest_money, self.money_format)
+        self.worksheet1.write_string(0, 7, '월 고정 수입: ', self.bold_format)
+        # self.worksheet1.write_number(0, 8, '월 고정 수입: ', self.money_format)
+        self.worksheet1.write_string(0, 9, '월 고정 지출: ', self.bold_format)
+        # self.worksheet1.write_number(0, 10, '월 고정 지출: ', self.money_format)
+        self.worksheet1.write_string(0, 11, '월 특별 수입: ', self.bold_format)
+        # self.worksheet1.write_number(0, 12, '월 특별 수입: ', self.money_format)
+        self.worksheet1.write_string(0, 13, '업데이트 날짜: ', self.bold_format)
+        self.worksheet1.write(0, 14, datetime.today().strftime("%Y-%m-%d"), self.date_format)
+
+        # set detail data
+        self.worksheet1.write_string(1, 2, '예금: ', self.word_format)
+        self.worksheet1.write_number(1, 3, read_data.Deposit, self.money_format)
+        self.worksheet1.write_string(2, 2, '적금: ', self.word_format)
+        self.worksheet1.write_number(2, 3, read_data.Installment_savings, self.money_format)
+        self.worksheet1.write_string(3, 2, '국민은행: ', self.word_format)
+        self.worksheet1.write_number(3, 3, read_data.KB_bank, self.money_format)
+        self.worksheet1.write_string(4, 2, '신한은행: ', self.word_format)
+        self.worksheet1.write_number(4, 3, read_data.Sinhan_bank, self.money_format)
+        self.worksheet1.write_string(5, 2, '하나은행: ', self.word_format)
+        self.worksheet1.write_number(5, 3, read_data.Hana_bank, self.money_format)
+
+        self.worksheet1.write_string(1, 4, '주식: ', self.word_format)
+        self.worksheet1.write_number(1, 5, read_data.stock_predict_total_deposit, self.money_format)
+        self.worksheet1.write_string(2, 4, '주택청약: ', self.word_format)
+        self.worksheet1.write_number(2, 5, read_data.House_invest_deposit, self.money_format)
+        self.worksheet1.write_string(3, 4, '연금저축: ', self.word_format)
+        # self.worksheet1.write_number(3, 5, read_data, self.money_format)
 
     def draw_execl_chart_supply(self):
         self.worksheet8 = self.workbook.add_worksheet('매집수량변동그림')
