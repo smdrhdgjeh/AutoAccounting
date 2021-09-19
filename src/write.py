@@ -43,6 +43,14 @@ class My_Write():
 
         self.cell_bg_format = self.workbook.add_format({'bg_color': '#FFFF66'})
 
+        self.merge_format = self.workbook.add_format({'bold': True,
+                                                      'border': True,
+                                                      'align': 'center',
+                                                      'valign': 'vcenter',
+                                                      'fg_color': '#A0A0A0',
+                                                      'font_size': '9',
+                                                      'text_wrap': True})
+
     def write_excel_total_deposit_inform(self, read_data=None):
         self.worksheet1 = self.workbook.add_worksheet("자산내역")
         self.worksheet1.set_column('A:Z', 10)
@@ -60,6 +68,12 @@ class My_Write():
 
         self.total_deposit = self.total_flow_moeny + self.total_invest_money
 
+        # take this month transaction details
+        for keys in read_data.month_info_dict:
+            last_month = read_data.month_info_dict[keys]
+    
+        # 월 수입 / 월 지출 / 고정 수입 / 용돈 / 고정지출 / 십일조 / 주택청약 / 적금 / 연금 저축 / 통신비 / 보험료 / 차 유지비 / 교통비 / 총 교통비 / 월급 외 수입(ex: 보너스 or 출장비 등)
+
         # set data title
         self.worksheet1.write_string(0, 0, '총 자산: ', self.bold_format)
         self.worksheet1.write_number(0, 1, self.total_deposit, self.money_format)
@@ -68,13 +82,13 @@ class My_Write():
         self.worksheet1.write_string(0, 4, '투자 자산: ', self.bold_format)
         self.worksheet1.write_number(0, 5, self.total_invest_money, self.money_format)
         self.worksheet1.write_string(0, 7, '월 고정 수입: ', self.bold_format)
-        # self.worksheet1.write_number(0, 8, '월 고정 수입: ', self.money_format)
+        self.worksheet1.write_number(0, 8, last_month[2], self.money_format)
         self.worksheet1.write_string(0, 9, '월 고정 지출: ', self.bold_format)
-        # self.worksheet1.write_number(0, 10, '월 고정 지출: ', self.money_format)
+        self.worksheet1.write_number(0, 10, last_month[4], self.money_format)
         self.worksheet1.write_string(0, 11, '월 특별 수입: ', self.bold_format)
-        # self.worksheet1.write_number(0, 12, '월 특별 수입: ', self.money_format)
+        self.worksheet1.write_number(0, 12, last_month[14], self.money_format)
         self.worksheet1.write_string(0, 13, '업데이트 날짜: ', self.bold_format)
-        self.worksheet1.write(0, 14, datetime.today().strftime("%Y-%m-%d"), self.date_format)
+        # self.worksheet1.write(0, 14, datetime.today().strftime("%Y-%m-%d"), self.date_format) Need to change, last deposit date is the update date
 
         # set detail data
         self.worksheet1.write_string(1, 2, '예금: ', self.word_format)
@@ -93,7 +107,77 @@ class My_Write():
         self.worksheet1.write_string(2, 4, '주택청약: ', self.word_format)
         self.worksheet1.write_number(2, 5, read_data.House_invest_deposit, self.money_format)
         self.worksheet1.write_string(3, 4, '연금저축: ', self.word_format)
-        # self.worksheet1.write_number(3, 5, read_data, self.money_format)
+        self.worksheet1.write_number(3, 5, read_data.pension, self.money_format)
+
+        self.worksheet1.write_string(1, 7, '월급: ', self.word_format)
+        self.worksheet1.write_number(1, 8, (last_month[2] - last_month[3]), self.money_format)
+        self.worksheet1.write_string(2, 7, '용돈: ', self.word_format)
+        self.worksheet1.write_number(2, 8, last_month[3], self.money_format)
+
+        self.worksheet1.write_string(1, 9, '십일조: ', self.word_format)
+        self.worksheet1.write_number(1, 10, last_month[5], self.money_format)
+        self.worksheet1.write_string(2, 9, '저축 금액: ', self.word_format)
+        self.worksheet1.write_number(2, 10, last_month[7], self.money_format)
+        self.worksheet1.write_string(3, 9, '주택 청약: ', self.word_format)
+        self.worksheet1.write_number(3, 10, last_month[6], self.money_format)
+        self.worksheet1.write_string(4, 9, '연금 저축: ', self.word_format)
+        self.worksheet1.write_number(4, 10, last_month[8], self.money_format)
+        self.worksheet1.write_string(5, 9, '통신비: ', self.word_format)
+        self.worksheet1.write_number(5, 10, last_month[9], self.money_format)
+        self.worksheet1.write_string(6, 9, '차 유지비: ', self.word_format)
+        self.worksheet1.write_number(6, 10, last_month[11], self.money_format)
+        self.worksheet1.write_string(7, 9, '교통비: ', self.word_format)
+        self.worksheet1.write_number(7, 10, last_month[12], self.money_format)
+        self.worksheet1.write_string(8, 9, '보험료: ', self.word_format)
+        self.worksheet1.write_number(8, 10, last_month[10], self.money_format)
+
+    def write_excel_monthly_transaction_details(self, read_data=None):
+        # take data dict key list
+        key_list = []
+        for keys in read_data.month_info_dict:
+            key_list.append(keys)
+        key_list.reverse()
+
+        # 월 수입 / 월 지출 / 고정 수입 / 용돈 / 고정지출 / 십일조 / 주택청약 / 적금 / 연금 저축 / 통신비 / 보험료 / 차 유지비 / 교통비 / 총 교통비 / 월급 외 수입(ex: 보너스 or 출장비 등)
+
+        start_row = 15
+
+        merge_range1 = 'A'+str(start_row) + ':' + 'B'+str(start_row)
+        merge_range2 = 'C'+str(start_row) + ':' + 'D'+str(start_row)
+        merge_range3 = 'E'+str(start_row) + ':' + 'F'+str(start_row)
+        merge_range4 = 'G'+str(start_row) + ':' + 'H'+str(start_row)
+        merge_range5 = 'I'+str(start_row) + ':' + 'J'+str(start_row)
+        self.worksheet1.merge_range(merge_range1, '21년', self.merge_format)
+        self.worksheet1.merge_range(merge_range2, '수입', self.merge_format)
+        self.worksheet1.merge_range(merge_range3, '지출', self.merge_format)
+        self.worksheet1.merge_range(merge_range4, '계', self.merge_format)
+        self.worksheet1.merge_range(merge_range5, '비고', self.merge_format)
+
+        # set data title
+        for i in range(len(key_list)):
+            if key_list[i][:4] == '2021':
+                self.worksheet1.write_string(start_row + i, 0, str(key_list[i][5:]) + '월', self.word_format)
+                self.worksheet1.write_number(start_row + i, 2, read_data.month_info_dict[key_list[i]][0], self.money_format)
+                self.worksheet1.write_number(start_row + i, 4, read_data.month_info_dict[key_list[i]][1], self.money_format)
+                self.worksheet1.write_number(start_row + i, 6, read_data.month_info_dict[key_list[i]][0] + read_data.month_info_dict[key_list[i]][1], self.money_format)
+                last_2021_row = start_row + i
+            elif key_list[i][:4] == '2020':
+                self.worksheet1.write_string(start_row + i + 2, 0, str(key_list[i][5:]) + '월', self.word_format)
+                self.worksheet1.write_number(start_row + i + 2, 2, read_data.month_info_dict[key_list[i]][0], self.money_format)
+                self.worksheet1.write_number(start_row + i + 2, 4, read_data.month_info_dict[key_list[i]][1], self.money_format)
+                self.worksheet1.write_number(start_row + i + 2, 6, read_data.month_info_dict[key_list[i]][0] + read_data.month_info_dict[key_list[i]][1], self.money_format)
+        
+        merge_range1 = 'A'+str(last_2021_row + 3) + ':' + 'B'+str(last_2021_row + 3)
+        merge_range2 = 'C'+str(last_2021_row + 3) + ':' + 'D'+str(last_2021_row + 3)
+        merge_range3 = 'E'+str(last_2021_row + 3) + ':' + 'F'+str(last_2021_row + 3)
+        merge_range4 = 'G'+str(last_2021_row + 3) + ':' + 'H'+str(last_2021_row + 3)
+        merge_range5 = 'I'+str(last_2021_row + 3) + ':' + 'J'+str(last_2021_row + 3)
+        self.worksheet1.merge_range(merge_range1, '20년', self.merge_format)
+        self.worksheet1.merge_range(merge_range2, '수입', self.merge_format)
+        self.worksheet1.merge_range(merge_range3, '지출', self.merge_format)
+        self.worksheet1.merge_range(merge_range4, '계', self.merge_format)
+        self.worksheet1.merge_range(merge_range5, '비고', self.merge_format)
+
 
     def draw_execl_chart_supply(self):
         self.worksheet8 = self.workbook.add_worksheet('매집수량변동그림')
