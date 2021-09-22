@@ -1,4 +1,5 @@
 import os
+from re import sub
 import pandas as pd
 
 from datetime import datetime, timedelta, date
@@ -21,7 +22,19 @@ class My_Read():
     
     def check_excel_data_date_and_classifying(self, file_location):
         for (path, dir, files) in os.walk(file_location):
-            print("path:", path, "dir:", dir, "files:",files)
+            self.last_file_name = path + files[-1]
+            self.last_file_date = files[-1][11:21]
+        
+    def read_excel_file_exist_file(self, file):
+        if os.path.exists(file):  # 해당 경로에 파일이 있는지 체크한다.
+            self.exist_file_df = pd.read_excel(file, sheet_name=0)
+            self.exist_file_df = self.exist_file_df.fillna('')
+            self.file_exist_true = True
+        else:
+            self.file_exist_true = False
+
+    def check_exist_file_last_update_date(self):
+        pass
 
     def excel_date_type_convert_str(self, excel_date=None): # 엑셀에서 날짜 읽었을때 숫자 형태일시 문자형태로 변화
         if type(excel_date) is not str:
@@ -32,6 +45,7 @@ class My_Read():
 
     def read_excel_file_deposit_inform(self, file=None):
         df = pd.read_excel(file, sheet_name=0)
+        df = df.fillna('')
 
         # setting the property data information row
         starting_row = 38 #starting property information row
@@ -83,6 +97,7 @@ class My_Read():
         self.stock_predict_total_deposit = 0
 
         df = pd.read_excel(stock_data_file1, sheet_name=0)
+        df = df.fillna('')
         stock_data1 = df.loc[0, list(df.columns)[18:]]
 
         df = pd.read_excel(stock_data_file2, sheet_name=0)
@@ -96,8 +111,24 @@ class My_Read():
 
     def read_excel_file_transaction_details(self, file=None):
         df = pd.read_excel(file, sheet_name=1)
+        df = df.fillna('')
 
-        month = [g for n, g in df.set_index('날짜').groupby(pd.Grouper(freq='M'))]
+        if self.file_exist_true == True:
+            check_same_month_date1 = datetime.strptime(self.last_file_date, '%Y-%m-%d').strftime('%Y-%m')
+            check_same_month_date2 = datetime.strftime(self.exist_file_df.columns[-1], '%Y-%m')
+            
+            # 같은 달 안에서 새롭게 업데이트 하는 건지 확인 (ex: 9/10일 업뎃 후 9/29일 업뎃)
+            if check_same_month_date1 == check_same_month_date2:
+                temp_date_for_find_day = datetime.strptime(self.last_file_date, '%Y-%m-%d')
+                first_day = temp_date_for_find_day.replace(day=1)
+            else:
+                first_day = self.exist_file_df.columns[-1]
+
+            df = df.set_index('날짜')[self.last_file_date:first_day]
+        else:
+            df = df.set_index('날짜')
+        
+        month = [g for n, g in df.groupby(pd.Grouper(freq='M'))]
 
         total_income = 0 # 전체 수입
         total_spend = 0 # 전체 지출
@@ -113,10 +144,11 @@ class My_Read():
         saving_spend = 0 # 적금 지출
         pension_spend = 0 # 연금저출 지출
         cellphon_spend = 0 # 통신비 지출
-        insurance_spend = 0 # 보험 지출
+        insurance_spend = 0 # 보험 지출 (현대해상 + 삼성케어플러스)
         total_trans_spend = 0 # 총 교통비 지출
         car_maintenance_spend = 0 # 자동차 유지비 (주유비 + 톨비)
         trans_spend = 0 # 교통비 지출 (대중교통 + 택시)
+        subscription_spend = 0 # youtube premium, naver membership, office 365
 
         special_income = 0 # 고정 수입 이외 수입
 
@@ -158,7 +190,7 @@ class My_Read():
                     total_spend += temp
 
                     # 월 고정 지출
-                    if month[m].iloc[i, 3] == '십일조':
+                    if month[m].iloc[i, 2] == '십일조':
                         tithe_spend += temp
                         fixed_spend += temp
                     elif month[m].iloc[i, 1] == '이체' and month[m].iloc[i, 4][-2:] == '회차':
@@ -177,12 +209,22 @@ class My_Read():
                     elif month[m].iloc[i, 2] == '보험' and month[m].iloc[i, 4][:3] == '현대해':
                         insurance_spend += temp
                         fixed_spend += temp
+                    elif month[m].iloc[i, 3] == '가구/가전' and month[m].iloc[i, 4] == '보험전화결제 - 삼성전자(주)':
+                        insurance_spend += temp
+                        fixed_spend += temp
                     elif month[m].iloc[i, 2] == '자동차':
                         car_maintenance_spend += temp
                         fixed_spend += temp
                     elif month[m].iloc[i, 2] == '교통':
                         trans_spend += temp
                         fixed_spend += temp
+                    elif month[m].iloc[i, 2] == '온라인쇼핑' and month[m].iloc[i, 4][:7] == '유튜브프리미엄':
+                        subscription_spend += temp
+                        fixed_spend += temp
+
+                    # 카드대금 결제는 지출에서 제외
+                    if month[m].iloc[i, 2] == '카드대금':
+                        total_spend -= temp
             
             if month[m].index[0].year == 2020:
                 self.year_income_2020 += total_income
@@ -196,7 +238,7 @@ class My_Read():
             total_trans_spend = car_maintenance_spend + trans_spend
             special_income = total_income - fixed_income
 
-            # 월 수입 / 월 지출 / 고정 수입 / 용돈 / 고정지출 / 십일조 / 주택청약 / 적금 / 연금저출 / 통신비 / 보험료 / 차 유지비 / 교통비 / 총 교통비 / 월급 외 수입(ex: 보너스 or 출장비 등)
+            # 월 수입 / 월 지출 / 고정 수입 / 용돈 / 고정지출 / 십일조 / 주택청약 / 적금 / 연금저출 / 통신비 / 보험료 / 차 유지비 / 교통비 / 총 교통비 / 구독료 / 월급 외 수입(ex: 보너스 or 출장비 등)
             temp_list.clear()
             temp_list.append(total_income)
             temp_list.append(total_spend)
@@ -212,6 +254,7 @@ class My_Read():
             temp_list.append(car_maintenance_spend)
             temp_list.append(trans_spend)
             temp_list.append(total_trans_spend)
+            temp_list.append(subscription_spend)
             temp_list.append(special_income)
 
             date_key_temp = str(month[m].index[0].year) + '-' + str(month[m].index[0].month)
@@ -233,4 +276,5 @@ class My_Read():
             car_maintenance_spend = 0
             trans_spend = 0
             total_trans_spend = 0
+            subscription_spend = 0
             special_income = 0
