@@ -100,9 +100,10 @@ class My_Write():
         self.worksheet1.write_number(0, 12, last_month[15], self.money_format)
         self.worksheet1.write_string(0, 14, '신용카드 혜택: ', self.bold_format)
         self.worksheet1.write_number(0, 15, 22000, self.money_format)
-        self.worksheet1.write_string(0, 18, '업데이트 날짜: ', self.bold_format)
-
-        self.worksheet1.write(0, 19, datetime.strptime(read_data.last_file_date, '%Y-%m-%d'), self.date_format)
+        self.worksheet1.write_string(0, 16, '1년 저축 예상 금액: ', self.bold_format)
+        self.worksheet1.write_number(0, 17, 29400000, self.money_format)
+        self.worksheet1.write_string(0, 19, '업데이트 날짜: ', self.bold_format)
+        self.worksheet1.write(0, 20, datetime.strptime(read_data.last_file_date, '%Y-%m-%d'), self.date_format)
 
         # set detail data
         self.worksheet1.write_string(1, 2, '예금: ', self.word_format)
@@ -151,6 +152,12 @@ class My_Write():
         self.worksheet1.write_number(1, 15, 10000, self.money_format)
         self.worksheet1.write_string(2, 14, 'KB심플라이프: ' + '\n' + '실적 30만(통신비)', self.word_format)
         self.worksheet1.write_number(2, 15, 12000, self.money_format)
+        self.worksheet1.write_string(1, 16, '국민은행 적금: ', self.word_format)
+        self.worksheet1.write_number(1, 17, 2000000*12, self.money_format)
+        self.worksheet1.write_string(2, 16, '연금 저축: ', self.word_format)
+        self.worksheet1.write_number(2, 17, 2500000*12, self.money_format)
+        self.worksheet1.write_string(3, 16, '주택 청약: ', self.word_format)
+        self.worksheet1.write_number(3, 17, 200000*12, self.money_format)
 
 
     def write_excel_monthly_transaction_details(self, read_data=None):
@@ -185,12 +192,13 @@ class My_Write():
                     same_month_pass = True
                 else:
                     same_month_pass = False
-                last_new_data_row = start_row + i
+                last_new_data_row = start_row + i + 1
                 
             # 기존 데이터 입력
             for i in range(14, read_data.exist_file_df.index.stop):
-                if read_data.exist_file_df.iloc[i,0] == '' or same_month_pass == True:
+                if same_month_pass == True:
                     same_month_pass = False
+                    last_new_data_row -= 1
                 elif read_data.exist_file_df.iloc[i,0][:4] == '2021':
                     self.worksheet1.write_string(last_new_data_row + i - 14, 0, read_data.exist_file_df.iloc[i,0], self.word_format)
                     self.worksheet1.write_number(last_new_data_row + i - 14, 2, read_data.exist_file_df.iloc[i,2], self.money_format)

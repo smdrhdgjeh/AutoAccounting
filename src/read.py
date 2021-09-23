@@ -122,7 +122,7 @@ class My_Read():
                 temp_date_for_find_day = datetime.strptime(self.last_file_date, '%Y-%m-%d')
                 first_day = temp_date_for_find_day.replace(day=1)
             else:
-                first_day = self.exist_file_df.columns[-1]
+                first_day = self.exist_file_df.columns[-1] + timedelta(days=1)
 
             df = df.set_index('날짜')[self.last_file_date:first_day]
         else:
@@ -153,78 +153,88 @@ class My_Read():
         special_income = 0 # 고정 수입 이외 수입
 
         temp_list = []
+        pass_flag = 0
         for m in range(len(month)):
             # 월 단위 연산    
             for i in range(len(month[m].index)):
-                temp = month[m].iloc[i, 5]
-                if temp > 0:
-                    total_income += temp
+                # 계좌 내 이동은 제외
+                if i < len(month[m].index) - 1:
+                    if (month[m].iloc[i, 5] + (month[m].iloc[i + 1, 5])) == 0 and '도영환' == month[m].iloc[i, 4].strip()[-3:] and '도영환' == month[m].iloc[i + 1, 4].strip()[-3:]:
+                        pass_flag = 2
 
-                    # 월 고정 수입 (월급)
-                    if month[m].iloc[i, 1] == '이체' and month[m].iloc[i, 4] == '현대모비스(주)':
-                        if month[m].index[0].year == 2020:
-                            if temp <= self.salary_2020 * 1.1 and temp >= self.salary_2020 * 0.9 and fixed_flag1 == 0:
-                                fixed_income += temp
-                                fixed_flag1 = 1
-                            elif temp <= self.fixed_bonus_2020 * 1.1 and temp >= self.fixed_bonus_2020 * 0.9 and fixed_flag2 == 0:
-                                fixed_income += temp
-                                fixed_flag2 = 1
-                        elif month[m].index[0].year == 2021:
-                            if temp <= self.salary_2021 * 1.1 and temp >= self.salary_2021 * 0.9 and fixed_flag1 == 0:
-                                fixed_income += temp
-                                fixed_flag1 = 1
-                            elif temp <= self.fixed_bonus_2021 * 1.1 and temp >= self.fixed_bonus_2021 * 0.9 and fixed_flag2 == 0:
-                                fixed_income += temp
-                                fixed_flag2 = 1
-
-                    elif month[m].iloc[i, 1] == '이체' and month[m].iloc[i, 4] == '도태영':
-                        parents_love += temp
-                        fixed_income += temp
-                    
-                    # 계좌 내 이동은 월 수입에서 제외 (ex: 비자금, 적금 등)
-                    if month[m].iloc[i, 7] == 'KB맑은하늘적금':
-                        total_income -= temp
-                    elif month[m].iloc[i, 7] == '주택청약종합저축':
-                        total_income -= temp
+                if pass_flag > 0:
+                    pass_flag -= 1
                 else:
-                    total_spend += temp
+                    temp = month[m].iloc[i, 5]
 
-                    # 월 고정 지출
-                    if month[m].iloc[i, 2] == '십일조':
-                        tithe_spend += temp
-                        fixed_spend += temp
-                    elif month[m].iloc[i, 1] == '이체' and month[m].iloc[i, 4][-2:] == '회차':
-                        if month[m].index[i].day < 20:
-                            invest_spend += temp # 20일 이전은 주택정약
-                            fixed_spend += temp
-                        else:
-                            saving_spend += temp
-                            fixed_spend += temp
-                    elif month[m].iloc[i, 1] == '이체' and month[m].iloc[i, 4] == '퇴직기일출금':
-                        pension_spend += temp
-                        fixed_spend += temp
-                    elif month[m].iloc[i, 2] == '주거/통신' and month[m].iloc[i, 3] == '휴대폰':
-                        cellphon_spend += temp
-                        fixed_spend += temp
-                    elif month[m].iloc[i, 2] == '보험' and month[m].iloc[i, 4][:3] == '현대해':
-                        insurance_spend += temp
-                        fixed_spend += temp
-                    elif month[m].iloc[i, 3] == '가구/가전' and month[m].iloc[i, 4] == '보험전화결제 - 삼성전자(주)':
-                        insurance_spend += temp
-                        fixed_spend += temp
-                    elif month[m].iloc[i, 2] == '자동차':
-                        car_maintenance_spend += temp
-                        fixed_spend += temp
-                    elif month[m].iloc[i, 2] == '교통':
-                        trans_spend += temp
-                        fixed_spend += temp
-                    elif month[m].iloc[i, 2] == '온라인쇼핑' and month[m].iloc[i, 4][:7] == '유튜브프리미엄':
-                        subscription_spend += temp
-                        fixed_spend += temp
+                    if temp > 0:
+                        total_income += temp
+                        # 월 고정 수입 (월급)
+                        if month[m].iloc[i, 1] == '이체' and month[m].iloc[i, 4] == '현대모비스(주)':
+                            if month[m].index[0].year == 2020:
+                                if temp <= self.salary_2020 * 1.1 and temp >= self.salary_2020 * 0.9 and fixed_flag1 == 0:
+                                    fixed_income += temp
+                                    fixed_flag1 = 1
+                                elif temp <= self.fixed_bonus_2020 * 1.1 and temp >= self.fixed_bonus_2020 * 0.9 and fixed_flag2 == 0:
+                                    fixed_income += temp
+                                    fixed_flag2 = 1
+                            elif month[m].index[0].year == 2021:
+                                if temp <= self.salary_2021 * 1.1 and temp >= self.salary_2021 * 0.9 and fixed_flag1 == 0:
+                                    fixed_income += temp
+                                    fixed_flag1 = 1
+                                elif temp <= self.fixed_bonus_2021 * 1.1 and temp >= self.fixed_bonus_2021 * 0.9 and fixed_flag2 == 0:
+                                    fixed_income += temp
+                                    fixed_flag2 = 1
+                        elif month[m].iloc[i, 1] == '이체' and month[m].iloc[i, 4] == '도태영':
+                            parents_love += temp
+                            fixed_income += temp
+                        
+                        # 계좌 내 이동은 월 수입에서 제외 / 이상 집계는 제외 (ex: 비자금, 적금 등)
+                        if month[m].iloc[i, 7] == 'KB맑은하늘적금':
+                            total_income -= temp
+                        elif month[m].iloc[i, 7] == '주택청약종합저축':
+                            total_income -= temp
+                        elif month[m].iloc[i, 3] == '주유':
+                            total_income -= temp
+                    else:
+                        total_spend += temp
 
-                    # 카드대금 결제는 지출에서 제외
-                    if month[m].iloc[i, 2] == '카드대금':
-                        total_spend -= temp
+                        # 월 고정 지출
+                        if month[m].iloc[i, 2] == '십일조':
+                            tithe_spend += temp
+                            fixed_spend += temp
+                        elif month[m].iloc[i, 1] == '이체' and month[m].iloc[i, 4][-2:] == '회차':
+                            if month[m].index[i].day < 20:
+                                invest_spend += temp # 20일 이전은 주택정약
+                                fixed_spend += temp
+                            else:
+                                saving_spend += temp
+                                fixed_spend += temp
+                        elif month[m].iloc[i, 1] == '이체' and month[m].iloc[i, 4] == '퇴직기일출금':
+                            pension_spend += temp
+                            fixed_spend += temp
+                        elif month[m].iloc[i, 2] == '주거/통신' and month[m].iloc[i, 3] == '휴대폰':
+                            cellphon_spend += temp
+                            fixed_spend += temp
+                        elif month[m].iloc[i, 2] == '보험' and month[m].iloc[i, 4][:3] == '현대해':
+                            insurance_spend += temp
+                            fixed_spend += temp
+                        elif month[m].iloc[i, 3] == '가구/가전' and month[m].iloc[i, 4] == '보험전화결제 - 삼성전자(주)':
+                            insurance_spend += temp
+                            fixed_spend += temp
+                        elif month[m].iloc[i, 2] == '자동차':
+                            car_maintenance_spend += temp
+                            fixed_spend += temp
+                        elif month[m].iloc[i, 2] == '교통':
+                            trans_spend += temp
+                            fixed_spend += temp
+                        elif month[m].iloc[i, 2] == '온라인쇼핑' and month[m].iloc[i, 4][:7] == '유튜브프리미엄':
+                            subscription_spend += temp
+                            fixed_spend += temp
+                        
+                        # 카드대금 결제는 지출에서 제외
+                        if month[m].iloc[i, 2] == '카드대금':
+                            total_spend -= temp
             
             if month[m].index[0].year == 2020:
                 self.year_income_2020 += total_income
