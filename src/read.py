@@ -81,7 +81,9 @@ class My_Read():
         ##########################################
         ############ Need to change #############
         ##########################################
-        self.pension = 4500000
+        self.pension = 5000000
+        self.employee_ownership = 25
+        self.mobis_stock_price = 260000
 
     def read_excel_file_stock_inform(self, file=None):
         ##########################################
@@ -248,7 +250,7 @@ class My_Read():
             total_trans_spend = car_maintenance_spend + trans_spend
             special_income = total_income - fixed_income
 
-            # 월 수입 / 월 지출 / 고정 수입 / 용돈 / 고정지출 / 십일조 / 주택청약 / 적금 / 연금저출 / 통신비 / 보험료 / 차 유지비 / 교통비 / 총 교통비 / 구독료 / 월급 외 수입(ex: 보너스 or 출장비 등)
+            # 월 수입 / 월 지출 / 고정 수입 / 용돈 / 고정지출 / 십일조 / 주택청약 / 적금 / 연금저축 / 통신비 / 보험료 / 차 유지비 / 교통비 / 총 교통비 / 구독료 / 월급 외 수입(ex: 보너스 or 출장비 등)
             temp_list.clear()
             temp_list.append(total_income)
             temp_list.append(total_spend)
