@@ -175,7 +175,7 @@ class My_Write():
 
         merge_range1 = 'A'+str(start_row) + ':' + 'B'+str(start_row)
         merge_range2 = 'I'+str(start_row) + ':' + 'J'+str(start_row)
-        self.worksheet1.merge_range(merge_range1, '21년', self.merge_format)
+        self.worksheet1.merge_range(merge_range1, '22년', self.merge_format)
         self.worksheet1.write_string(start_row - 1, 2, '수입', self.bold_format)
         self.worksheet1.write_string(start_row - 1, 4, '지출', self.bold_format)
         self.worksheet1.write_string(start_row - 1, 6, '계', self.bold_format)
@@ -195,35 +195,52 @@ class My_Write():
                 else:
                     same_month_pass = False
                 last_new_data_row = start_row + i + 1
-                
+
+            # 년도 변경 추가를 자동화 하지 않음 이에 따라 생기는 문제를 막기 위한 임시방편
+            last_2022_row = last_new_data_row - 1
+
             # 기존 데이터 입력
             for i in range(14, read_data.exist_file_df.index.stop):
                 if same_month_pass == True:
                     same_month_pass = False
                     last_new_data_row -= 1
+                elif read_data.exist_file_df.iloc[i,0][:4] == '2022':
+                    self.worksheet1.write_string(last_new_data_row + (i - 14), 0, read_data.exist_file_df.iloc[i,0], self.word_format)
+                    self.worksheet1.write_number(last_new_data_row + (i - 14), 2, read_data.exist_file_df.iloc[i,2], self.money_format)
+                    self.worksheet1.write_number(last_new_data_row + (i - 14), 4, read_data.exist_file_df.iloc[i,4], self.money_format)
+                    self.worksheet1.write_number(last_new_data_row + (i - 14), 6, read_data.exist_file_df.iloc[i,6], self.money_format)
+                    self.worksheet1.write_string(last_new_data_row + (i - 14), 8, read_data.exist_file_df.iloc[i,8], self.word_format)
+                    self.worksheet1.write_string(last_new_data_row + (i - 14), 9, read_data.exist_file_df.iloc[i,9], self.word_format)
+                    last_2022_row = last_new_data_row + (i - 14)
                 elif read_data.exist_file_df.iloc[i,0][:4] == '2021':
-                    self.worksheet1.write_string(last_new_data_row + i - 14, 0, read_data.exist_file_df.iloc[i,0], self.word_format)
-                    self.worksheet1.write_number(last_new_data_row + i - 14, 2, read_data.exist_file_df.iloc[i,2], self.money_format)
-                    self.worksheet1.write_number(last_new_data_row + i - 14, 4, read_data.exist_file_df.iloc[i,4], self.money_format)
-                    self.worksheet1.write_number(last_new_data_row + i - 14, 6, read_data.exist_file_df.iloc[i,6], self.money_format)
-                    self.worksheet1.write_string(last_new_data_row + i - 14, 8, read_data.exist_file_df.iloc[i,8], self.word_format)
-                    self.worksheet1.write_string(last_new_data_row + i - 14, 9, read_data.exist_file_df.iloc[i,9], self.word_format)
-                    last_2021_row = last_new_data_row + i - 14
+                    self.worksheet1.write_string(last_new_data_row + (i - 14), 0, read_data.exist_file_df.iloc[i,0], self.word_format)
+                    self.worksheet1.write_number(last_new_data_row + (i - 14), 2, read_data.exist_file_df.iloc[i,2], self.money_format)
+                    self.worksheet1.write_number(last_new_data_row + (i - 14), 4, read_data.exist_file_df.iloc[i,4], self.money_format)
+                    self.worksheet1.write_number(last_new_data_row + (i - 14), 6, read_data.exist_file_df.iloc[i,6], self.money_format)
+                    self.worksheet1.write_string(last_new_data_row + (i - 14), 8, read_data.exist_file_df.iloc[i,8], self.word_format)
+                    self.worksheet1.write_string(last_new_data_row + (i - 14), 9, read_data.exist_file_df.iloc[i,9], self.word_format)
+                    last_2021_row = last_new_data_row + (i - 14) - 3
                 elif read_data.exist_file_df.iloc[i,0][:4] == '2020':
-                    self.worksheet1.write_string(last_new_data_row + i - 14, 0, read_data.exist_file_df.iloc[i,0], self.word_format)
-                    self.worksheet1.write_number(last_new_data_row + i - 14, 2, read_data.exist_file_df.iloc[i,2], self.money_format)
-                    self.worksheet1.write_number(last_new_data_row + i - 14, 4, read_data.exist_file_df.iloc[i,4], self.money_format)
-                    self.worksheet1.write_number(last_new_data_row + i - 14, 6, read_data.exist_file_df.iloc[i,6], self.money_format)
-                    self.worksheet1.write_string(last_new_data_row + i - 14, 8, read_data.exist_file_df.iloc[i,8], self.word_format)
-                    self.worksheet1.write_string(last_new_data_row + i - 14, 9, read_data.exist_file_df.iloc[i,9], self.word_format)
-                    last_2020_row = last_new_data_row + i - 14 - 3
+                    self.worksheet1.write_string(last_new_data_row + (i - 14), 0, read_data.exist_file_df.iloc[i,0], self.word_format)
+                    self.worksheet1.write_number(last_new_data_row + (i - 14), 2, read_data.exist_file_df.iloc[i,2], self.money_format)
+                    self.worksheet1.write_number(last_new_data_row + (i - 14), 4, read_data.exist_file_df.iloc[i,4], self.money_format)
+                    self.worksheet1.write_number(last_new_data_row + (i - 14), 6, read_data.exist_file_df.iloc[i,6], self.money_format)
+                    self.worksheet1.write_string(last_new_data_row + (i - 14), 8, read_data.exist_file_df.iloc[i,8], self.word_format)
+                    self.worksheet1.write_string(last_new_data_row + (i - 14), 9, read_data.exist_file_df.iloc[i,9], self.word_format)
+                    last_2020_row = last_new_data_row + (i - 14) - 6
         else:
             for i in range(len(key_list)):
-                if key_list[i][:4] == '2021':
+                if key_list[i][:4] == '2022':
                     self.worksheet1.write_string(start_row + i, 0, str(key_list[i]) + '월', self.word_format)
                     self.worksheet1.write_number(start_row + i, 2, read_data.month_info_dict[key_list[i]][0], self.money_format)
                     self.worksheet1.write_number(start_row + i, 4, read_data.month_info_dict[key_list[i]][1], self.money_format)
                     self.worksheet1.write_formula(start_row + i, 6, ('=' + 'C' + str(start_row + i + 1) + '+' + 'E' + str(start_row + i + 1)), self.money_format)
+                    last_2022_row = start_row + i
+                elif key_list[i][:4] == '2021':
+                    self.worksheet1.write_string(start_row + i + 3, 0, str(key_list[i]) + '월', self.word_format)
+                    self.worksheet1.write_number(start_row + i + 3, 2, read_data.month_info_dict[key_list[i]][0], self.money_format)
+                    self.worksheet1.write_number(start_row + i + 3, 4, read_data.month_info_dict[key_list[i]][1], self.money_format)
+                    self.worksheet1.write_formula(start_row + i + 3, 6, ('=' + 'C' + str(start_row + i + 4) + '+' + 'E' + str(start_row + i + 4)), self.money_format)
                     last_2021_row = start_row + i
                 elif key_list[i][:4] == '2020':
                     self.worksheet1.write_string(start_row + i + 3, 0, str(key_list[i]) + '월', self.word_format)
@@ -231,23 +248,35 @@ class My_Write():
                     self.worksheet1.write_number(start_row + i + 3, 4, read_data.month_info_dict[key_list[i]][1], self.money_format)
                     self.worksheet1.write_formula(start_row + i + 3, 6, ('=' + 'C' + str(start_row + i + 4) + '+' + 'E' + str(start_row + i + 4)), self.money_format)
                     last_2020_row = start_row + i
+
+        merge_range1 = 'A'+str(last_2022_row + 4) + ':' + 'B'+str(last_2022_row + 4)
+        merge_range2 = 'I'+str(last_2022_row + 4) + ':' + 'J'+str(last_2022_row + 4)
+        self.worksheet1.merge_range(merge_range1, '21년', self.merge_format)
+        self.worksheet1.write_string(last_2022_row + 3, 2, '수입', self.bold_format)
+        self.worksheet1.write_string(last_2022_row + 3, 4, '지출', self.bold_format)
+        self.worksheet1.write_string(last_2022_row + 3, 6, '계', self.bold_format)
+        self.worksheet1.merge_range(merge_range2, '비고', self.merge_format)
         
-        merge_range1 = 'A'+str(last_2021_row + 4) + ':' + 'B'+str(last_2021_row + 4)
-        merge_range2 = 'I'+str(last_2021_row + 4) + ':' + 'J'+str(last_2021_row + 4)
+        merge_range1 = 'A'+str(last_2021_row + 7) + ':' + 'B'+str(last_2021_row + 7)
+        merge_range2 = 'I'+str(last_2021_row + 7) + ':' + 'J'+str(last_2021_row + 7)
         self.worksheet1.merge_range(merge_range1, '20년', self.merge_format)
-        self.worksheet1.write_string(last_2021_row + 3, 2, '수입', self.bold_format)
-        self.worksheet1.write_string(last_2021_row + 3, 4, '지출', self.bold_format)
-        self.worksheet1.write_string(last_2021_row + 3, 6, '계', self.bold_format)
+        self.worksheet1.write_string(last_2021_row + 6, 2, '수입', self.bold_format)
+        self.worksheet1.write_string(last_2021_row + 6, 4, '지출', self.bold_format)
+        self.worksheet1.write_string(last_2021_row + 6, 6, '계', self.bold_format)
         self.worksheet1.merge_range(merge_range2, '비고', self.merge_format)
 
         # calculate year income and spend
-        self.worksheet1.write_formula(start_row - 1, 3, ('=SUM(' + 'C' + str(start_row + 1) + ':' + 'C' + str(last_2021_row + 1) + ')'), self.money_format)
-        self.worksheet1.write_formula(start_row - 1, 5, ('=SUM(' + 'E' + str(start_row + 1) + ':' + 'E' + str(last_2021_row + 1) + ')'), self.money_format)
+        self.worksheet1.write_formula(start_row - 1, 3, ('=SUM(' + 'C' + str(start_row + 1) + ':' + 'C' + str(last_2022_row + 1) + ')'), self.money_format)
+        self.worksheet1.write_formula(start_row - 1, 5, ('=SUM(' + 'E' + str(start_row + 1) + ':' + 'E' + str(last_2022_row + 1) + ')'), self.money_format)
         self.worksheet1.write_formula(start_row - 1, 7, ('=' + 'D' + str(start_row) + '+' + 'F' + str(start_row)), self.money_format)
 
-        self.worksheet1.write_formula(last_2021_row + 3, 3, ('=SUM(' + 'C' + str(last_2021_row + 5) + ':' + 'C' + str(last_2020_row + 4) + ')'), self.money_format)
-        self.worksheet1.write_formula(last_2021_row + 3, 5, ('=SUM(' + 'E' + str(last_2021_row + 5) + ':' + 'E' + str(last_2020_row + 4) + ')'), self.money_format)
-        self.worksheet1.write_formula(last_2021_row + 3, 7, ('=' + 'D' + str(last_2021_row + 4) + '+' + 'F' + str(last_2021_row + 4)), self.money_format)
+        self.worksheet1.write_formula(last_2022_row + 3, 3, ('=SUM(' + 'C' + str(last_2022_row + 5) + ':' + 'C' + str(last_2021_row + 4) + ')'), self.money_format)
+        self.worksheet1.write_formula(last_2022_row + 3, 5, ('=SUM(' + 'E' + str(last_2022_row + 5) + ':' + 'E' + str(last_2021_row + 4) + ')'), self.money_format)
+        self.worksheet1.write_formula(last_2022_row + 3, 7, ('=' + 'D' + str(last_2022_row + 4) + '+' + 'F' + str(last_2022_row + 4)), self.money_format)
+
+        self.worksheet1.write_formula(last_2021_row + 6, 3, ('=SUM(' + 'C' + str(last_2021_row + 8) + ':' + 'C' + str(last_2020_row + 7) + ')'), self.money_format)
+        self.worksheet1.write_formula(last_2021_row + 6, 5, ('=SUM(' + 'E' + str(last_2021_row + 8) + ':' + 'E' + str(last_2020_row + 7) + ')'), self.money_format)
+        self.worksheet1.write_formula(last_2021_row + 6, 7, ('=' + 'D' + str(last_2021_row + 7) + '+' + 'F' + str(last_2021_row + 7)), self.money_format)
 
     def draw_execl_chart_supply(self):
         self.worksheet8 = self.workbook.add_worksheet('매집수량변동그림')
